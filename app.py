@@ -131,9 +131,15 @@ async def offer(request):
     nerfreal = await asyncio.get_event_loop().run_in_executor(None, build_nerfreal,sessionid)
     nerfreals[sessionid] = nerfreal
     
-    #ice_server = RTCIceServer(urls='stun:stun.l.google.com:19302')
-    ice_server = RTCIceServer(urls='stun:stun.miwifi.com:3478')
-    pc = RTCPeerConnection(configuration=RTCConfiguration(iceServers=[ice_server]))
+    ice_servers = [
+        RTCIceServer(urls='stun:stun.miwifi.com:3478'),
+        RTCIceServer(
+            urls=['turn:avatar1.aihdl.com:3478', 'turns:avatar1.aihdl.com:5349'],
+            username='openavatar',
+            credential='StrongPassw0rd!'
+        )
+    ]
+    pc = RTCPeerConnection(configuration=RTCConfiguration(iceServers=ice_servers))
     pcs.add(pc)
 
     @pc.on("connectionstatechange")
