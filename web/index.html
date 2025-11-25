@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>数字人分离式控制系统 - 使用说明</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 36px;
+        }
+
+        h2 {
+            color: #764ba2;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        h3 {
+            color: #667eea;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        .intro {
+            background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            font-size: 18px;
+        }
+
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .step {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            border-left: 5px solid #667eea;
+            transition: transform 0.3s;
+        }
+
+        .step:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .step-number {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 40px;
+            font-weight: bold;
+            font-size: 20px;
+            margin-right: 10px;
+        }
+
+        .step-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .button-demo {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .demo-btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            color: white;
+            transition: all 0.3s;
+        }
+
+        .demo-btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .demo-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .demo-btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .demo-btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(245, 87, 108, 0.4);
+        }
+
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .feature-item {
+            background: #f0f7ff;
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .feature-icon {
+            font-size: 30px;
+        }
+
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Consolas', monospace;
+            color: #e83e8c;
+        }
+
+        .note {
+            background: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .warning {
+            background: #f8d7da;
+            border-left: 5px solid #dc3545;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .success {
+            background: #d4edda;
+            border-left: 5px solid #28a745;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        pre {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 数字人分离式控制系统</h1>
+
+        <div class="intro">
+            <strong>✨ 欢迎使用数字人分离式控制系统!</strong><br>
+            此系统将数字人分为<strong>显示页面</strong>和<strong>输入页面</strong>两个独立模块,
+            通过打字输入就能让数字人实时朗读,无需调用LLM,简单直观!
+        </div>
+
+        <h2>🚀 快速开始</h2>
+        <div class="button-demo">
+            <a href="/display.html" class="demo-btn demo-btn-primary" target="_blank">
+                🎬 打开数字人显示页面
+            </a>
+            <a href="/input.html" class="demo-btn demo-btn-secondary" target="_blank">
+                ⌨️ 打开文字输入页面
+            </a>
+        </div>
+
+        <div class="steps">
+            <div class="step">
+                <div class="step-title">
+                    <span class="step-number">1</span>
+                    打开显示页面
+                </div>
+                <p>首先打开数字人显示页面,建立WebRTC连接。页面会自动连接并显示数字人视频。</p>
+            </div>
+
+            <div class="step">
+                <div class="step-title">
+                    <span class="step-number">2</span>
+                    打开输入页面
+                </div>
+                <p>在显示页面点击"输入页面"按钮,或直接打开输入页面。页面会自动读取会话ID。</p>
+            </div>
+
+            <div class="step">
+                <div class="step-title">
+                    <span class="step-number">3</span>
+                    输入文字朗读
+                </div>
+                <p>在输入框输入文字,点击"发送朗读"或按Ctrl+Enter,数字人立即开始朗读!</p>
+            </div>
+        </div>
+
+        <h2>🎯 功能特点</h2>
+
+        <h3>📝 输入页面功能</h3>
+        <div class="feature-list">
+            <div class="feature-item">
+                <div class="feature-icon">🎨</div>
+                <div>美观的渐变界面</div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">⚡</div>
+                <div>快捷文本按钮</div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">⌨️</div>
+                <div>Ctrl+Enter快捷发送</div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">🔔</div>
+                <div>实时状态提示</div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">⏹️</div>
+                <div>一键中断朗读</div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">🔄</div>
+                <div>自动检测连接</div>
+            </div>
+        </div>
+
+        <h3>🎬 显示页面功能</h3>
+        <div class="feature-list">
+            <div class="feature-item">
+                <div class="feature-icon">📺</div>
+                <div>全屏视频显示</div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">🎤</div>
+                <div>实时语音播放</div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">📊</div>
+                <div>连接状态指示</div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">ℹ️</div>
+                <div>详细信息面板</div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">🔄</div>
+                <div>一键重新连接</div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">⌨️</div>
+                <div>快捷打开输入页</div>
+            </div>
+        </div>
+
+        <h2>🔧 使用技巧</h2>
+
+        <div class="success">
+            <strong>💡 提示:</strong> 建议将显示页面投屏到大屏幕,输入页面在电脑上操作,实现演示效果!
+        </div>
+
+        <h3>快捷键</h3>
+        <ul>
+            <li><code>Ctrl + Enter</code> - 在输入页面快速发送文字</li>
+            <li><code>Space</code> - 在显示页面显示/隐藏信息面板</li>
+        </ul>
+
+        <h3>快捷文本</h3>
+        <p>输入页面提供了预设的快捷文本按钮,点击即可快速输入常用语句:</p>
+        <ul>
+            <li>你好</li>
+            <li>天气</li>
+            <li>服务</li>
+            <li>帮助</li>
+        </ul>
+
+        <h3>中断功能</h3>
+        <p>如果数字人正在朗读,但你想换一段文字,点击"中断朗读"按钮即可立即停止。</p>
+
+        <h2>⚙️ 技术架构</h2>
+        <pre>
+┌─────────────┐          ┌─────────────┐
+│ input.html  │          │display.html │
+│  (输入页面)  │          │ (显示页面)  │
+└──────┬──────┘          └──────┬──────┘
+       │                        │
+       │ HTTP POST              │ WebRTC
+       │ /human                 │ /offer
+       │                        │
+       └────────┬───────────────┘
+                │
+         ┌──────▼──────┐
+         │   app.py    │
+         │  (服务器)    │
+         └──────┬──────┘
+                │
+         ┌──────▼──────┐
+         │   TTS引擎   │
+         │(EdgeTTS等)  │
+         └─────────────┘
+        </pre>
+
+        <h2>📡 API接口</h2>
+
+        <h3>POST /offer</h3>
+        <p>建立WebRTC连接</p>
+        <pre>请求: {sdp, type}
+响应: {sdp, type, sessionid}</pre>
+
+        <h3>POST /human</h3>
+        <p>发送文字朗读</p>
+        <pre>请求: {text, type:'echo', sessionid, interrupt:true}
+响应: {code, msg}</pre>
+
+        <h3>POST /interrupt_talk</h3>
+        <p>中断当前朗读</p>
+        <pre>请求: {sessionid}
+响应: {code, msg}</pre>
+
+        <h2>💡 注意事项</h2>
+
+        <div class="warning">
+            <strong>⚠️ 重要:</strong> 必须先打开display.html建立连接,再打开input.html!
+        </div>
+
+        <div class="note">
+            <strong>📝 提示:</strong>
+            <ul style="margin: 10px 0 0 20px;">
+                <li>建议使用Chrome或Edge浏览器</li>
+                <li>确保TTS服务已正确配置</li>
+                <li>如果连接失败,尝试刷新页面</li>
+                <li>两个页面可以在不同的浏览器标签页或窗口中打开</li>
+            </ul>
+        </div>
+
+        <h2>🎨 自定义</h2>
+
+        <h3>修改快捷文本</h3>
+        <p>编辑 <code>input.html</code> 中的快捷按钮:</p>
+        <pre>&lt;button class="quick-text-btn" onclick="setText('你的文本')"&gt;按钮名&lt;/button&gt;</pre>
+
+        <h3>修改TTS引擎</h3>
+        <p>启动时指定不同的TTS引擎:</p>
+        <pre>python app.py --tts edgetts --model musetalk
+python app.py --tts cosyvoice --model musetalk
+python app.py --tts doubao --model musetalk</pre>
+
+        <h2>🐛 故障排除</h2>
+
+        <h3>问题: 输入页面显示"未找到数字人连接"</h3>
+        <p><strong>解决:</strong> 先打开display.html等待连接建立(看到绿色状态点),再打开input.html</p>
+
+        <h3>问题: 数字人不说话</h3>
+        <p><strong>解决:</strong></p>
+        <ul>
+            <li>检查TTS服务是否正常</li>
+            <li>查看浏览器控制台错误信息(按F12)</li>
+            <li>确认sessionId是否正确(在显示页面按空格键查看)</li>
+        </ul>
+
+        <h3>问题: 视频不显示</h3>
+        <p><strong>解决:</strong></p>
+        <ul>
+            <li>检查WebRTC连接状态</li>
+            <li>确认浏览器允许媒体播放</li>
+            <li>尝试点击"重新连接"按钮</li>
+        </ul>
+
+        <h2>📞 获取帮助</h2>
+        <p>如遇问题,请查看:</p>
+        <ul>
+            <li>项目GitHub: <a href="https://github.com/lipku/LiveTalking" target="_blank">https://github.com/lipku/LiveTalking</a></li>
+            <li>详细文档: <a href="/README_SPLIT.md" target="_blank">README_SPLIT.md</a></li>
+        </ul>
+
+        <div class="footer">
+            <p>🎉 享受使用数字人分离式控制系统!</p>
+            <p style="margin-top: 10px; color: #999;">基于 LiveTalking 项目 | Apache License 2.0</p>
+        </div>
+    </div>
+</body>
+</html>

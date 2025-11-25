@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>数字人显示</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .video-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #video {
+            max-width: 90%;
+            max-height: 80vh;
+            border-radius: 20px;
+            box-shadow: 0 10px 50px rgba(102, 126, 234, 0.5);
+        }
+
+        #audio {
+            display: none;
+        }
+
+        .controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .control-btn {
+            padding: 10px 20px;
+            background: rgba(102, 126, 234, 0.9);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .control-btn:hover {
+            background: rgba(102, 126, 234, 1);
+            transform: translateY(-2px);
+        }
+
+        .status-indicator {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 15px 30px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            border-radius: 10px;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ff4444;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.connected {
+            background: #44ff44;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .subtitle {
+            position: absolute;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 20px 40px;
+            background: rgba(0,0,0,0.85);
+            color: white;
+            border-radius: 15px;
+            font-size: 24px;
+            text-align: center;
+            max-width: 80%;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+            display: none;
+        }
+
+        .info-panel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 14px;
+            max-width: 300px;
+        }
+
+        .info-panel div {
+            margin-bottom: 5px;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: white;
+        }
+
+        .loading-spinner {
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="video-container">
+        <div class="loading" id="loading">
+            <div class="loading-spinner"></div>
+            <div>正在连接数字人...</div>
+        </div>
+
+        <div class="info-panel" id="infoPanel" style="display:none;">
+            <div><strong>📡 连接信息</strong></div>
+            <div>会话ID: <span id="sessionInfo">-</span></div>
+            <div>连接状态: <span id="connectionState">-</span></div>
+            <div>视频状态: <span id="videoState">-</span></div>
+        </div>
+
+        <div class="controls">
+            <button class="control-btn" onclick="reconnect()">🔄 重新连接</button>
+            <button class="control-btn" onclick="toggleInfo()">ℹ️ 信息</button>
+            <button class="control-btn" onclick="openInputPage()">⌨️ 输入页面</button>
+        </div>
+
+        <audio id="audio" autoplay="true"></audio>
+        <video id="video" autoplay="true" playsinline="true"></video>
+
+        <div class="subtitle" id="subtitle"></div>
+
+        <div class="status-indicator">
+            <div class="status-dot" id="statusDot"></div>
+            <span id="statusText">正在初始化...</span>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        let pc = null;
+        let sessionId = null;
+        let currentSubtitle = '';
+
+        function updateStatus(text, isConnected) {
+            document.getElementById('statusText').textContent = text;
+            const dot = document.getElementById('statusDot');
+            if (isConnected) {
+                dot.classList.add('connected');
+            } else {
+                dot.classList.remove('connected');
+            }
+        }
+
+        function updateInfo(state, videoState) {
+            document.getElementById('sessionInfo').textContent = sessionId || '-';
+            document.getElementById('connectionState').textContent = state || '-';
+            document.getElementById('videoState').textContent = videoState || '-';
+        }
+
+        function showSubtitle(text) {
+            const subtitle = document.getElementById('subtitle');
+            subtitle.textContent = text;
+            subtitle.style.display = 'block';
+            currentSubtitle = text;
+
+            // 5秒后隐藏字幕
+            setTimeout(() => {
+                if (currentSubtitle === text) {
+                    subtitle.style.display = 'none';
+                }
+            }, 5000);
+        }
+
+        function toggleInfo() {
+            const panel = document.getElementById('infoPanel');
+            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function openInputPage() {
+            window.open('/input.html', 'input_page', 'width=900,height=700');
+        }
+
+        async function start() {
+            document.getElementById('loading').style.display = 'block';
+            updateStatus('正在建立连接...', false);
+
+            pc = new RTCPeerConnection({
+                iceServers: [{urls: 'stun:stun.miwifi.com:3478'}]
+            });
+
+            pc.ontrack = function(event) {
+                console.log('收到媒体流:', event.track.kind);
+                console.log('Track 状态:', event.track.readyState);
+                console.log('Streams:', event.streams.length);
+
+                if (event.track.kind === 'audio') {
+                    const audioElement = document.getElementById('audio');
+                    audioElement.srcObject = event.streams[0];
+                    console.log('音频流已连接, srcObject:', audioElement.srcObject);
+                } else if (event.track.kind === 'video') {
+                    const videoElement = document.getElementById('video');
+                    videoElement.srcObject = event.streams[0];
+
+                    // 添加视频元数据加载事件
+                    videoElement.onloadedmetadata = function() {
+                        console.log('视频元数据已加载');
+                        console.log('视频尺寸:', videoElement.videoWidth, 'x', videoElement.videoHeight);
+                        document.getElementById('loading').style.display = 'none';
+                    };
+
+                    // 添加播放事件
+                    videoElement.onplay = function() {
+                        console.log('视频开始播放');
+                        updateInfo('已连接', '播放中');
+                    };
+
+                    // 添加错误事件
+                    videoElement.onerror = function(e) {
+                        console.error('视频错误:', e);
+                    };
+
+                    console.log('视频流已设置, srcObject:', videoElement.srcObject);
+                    console.log('Video readyState:', videoElement.readyState);
+                }
+            };
+
+            pc.oniceconnectionstatechange = function() {
+                console.log('ICE连接状态:', pc.iceConnectionState);
+                updateInfo(pc.iceConnectionState, '-');
+
+                if (pc.iceConnectionState === 'connected') {
+                    updateStatus('✅ 数字人已连接', true);
+                } else if (pc.iceConnectionState === 'disconnected') {
+                    updateStatus('⚠️ 连接已断开', false);
+                } else if (pc.iceConnectionState === 'failed') {
+                    updateStatus('❌ 连接失败', false);
+                }
+            };
+
+            // 添加音频和视频轨道(用于接收)
+            pc.addTransceiver('audio', {direction: 'recvonly'});
+            pc.addTransceiver('video', {direction: 'recvonly'});
+
+            try {
+                const offer = await pc.createOffer();
+                await pc.setLocalDescription(offer);
+
+                const response = await fetch('/offer', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        sdp: pc.localDescription.sdp,
+                        type: pc.localDescription.type
+                    })
+                });
+
+                const answer = await response.json();
+                sessionId = answer.sessionid;
+
+                // 将sessionId保存到localStorage供输入页面使用
+                localStorage.setItem('sessionId', sessionId);
+
+                console.log('获得会话ID:', sessionId);
+                updateStatus('正在建立媒体流...', false);
+
+                await pc.setRemoteDescription(new RTCSessionDescription({
+                    sdp: answer.sdp,
+                    type: answer.type
+                }));
+
+                updateInfo('正在连接', '加载中');
+
+            } catch (error) {
+                console.error('连接错误:', error);
+                updateStatus('❌ 连接失败: ' + error.message, false);
+                document.getElementById('loading').innerHTML =
+                    '<div style="color: #ff4444;">连接失败,请刷新页面重试</div>';
+            }
+        }
+
+        async function stop() {
+            if (pc) {
+                pc.close();
+                pc = null;
+                sessionId = null;
+                localStorage.removeItem('sessionId');
+                updateStatus('已断开连接', false);
+                updateInfo('-', '-');
+            }
+        }
+
+        async function reconnect() {
+            await stop();
+            setTimeout(start, 500);
+        }
+
+        // 页面加载时自动开始
+        window.addEventListener('load', function() {
+            start();
+        });
+
+        // 页面关闭时断开连接
+        window.addEventListener('beforeunload', function() {
+            stop();
+        });
+
+        // 监听键盘事件:按空格键显示/隐藏信息面板
+        document.addEventListener('keydown', function(e) {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                toggleInfo();
+            }
+        });
+    </script>
+</body>
+</html>

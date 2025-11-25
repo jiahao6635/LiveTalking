@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>文字输入控制台</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 32px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #333;
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            resize: vertical;
+            min-height: 200px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        button {
+            flex: 1;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+        }
+
+        .btn-send {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-send:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-interrupt {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .btn-interrupt:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(245, 87, 108, 0.4);
+        }
+
+        .btn-clear {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-clear:hover {
+            background: #d0d0d0;
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: bold;
+            display: none;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            display: block;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+
+        .info {
+            background: #e8f4f8;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            color: #0c5460;
+            font-size: 14px;
+        }
+
+        .quick-texts {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .quick-text-btn {
+            padding: 8px 15px;
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .quick-text-btn:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 数字人文字控制台</h1>
+
+        <div class="info">
+            💡 提示: 在此页面输入文字,数字人会在另一个页面实时朗读。请先打开数字人显示页面。
+        </div>
+
+        <div class="quick-texts">
+            <button class="quick-text-btn" onclick="setText('你好,我是数字人助手。')">你好</button>
+            <button class="quick-text-btn" onclick="setText('今天天气真不错。')">天气</button>
+            <button class="quick-text-btn" onclick="setText('很高兴为您服务。')">服务</button>
+            <button class="quick-text-btn" onclick="setText('有什么可以帮助您的吗?')">帮助</button>
+        </div>
+
+        <div class="input-group">
+            <label for="message">请输入要朗读的文字:</label>
+            <textarea id="message" placeholder="在这里输入文字,数字人会实时朗读..."></textarea>
+        </div>
+
+        <div class="button-group">
+            <button class="btn-send" onclick="sendText()">📤 发送朗读</button>
+            <button class="btn-interrupt" onclick="interrupt()">⏹️ 中断朗读</button>
+            <button class="btn-clear" onclick="clearText()">🗑️ 清空</button>
+        </div>
+
+        <div id="status" class="status"></div>
+    </div>
+
+    <script>
+        let sessionId = null;
+
+        function setText(text) {
+            document.getElementById('message').value = text;
+        }
+
+        function clearText() {
+            document.getElementById('message').value = '';
+            showStatus('已清空输入框', 'success');
+        }
+
+        async function sendText() {
+            const text = document.getElementById('message').value.trim();
+
+            if (!text) {
+                showStatus('请输入要朗读的文字', 'error');
+                return;
+            }
+
+            try {
+                // 如果没有sessionId,先从localStorage获取
+                if (!sessionId) {
+                    sessionId = localStorage.getItem('sessionId');
+                    if (!sessionId) {
+                        showStatus('未找到数字人连接,请先打开数字人显示页面', 'error');
+                        return;
+                    }
+                }
+
+                const response = await fetch('/human', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        text: text,
+                        type: 'echo',
+                        interrupt: true,
+                        sessionid: parseInt(sessionId)
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.code === 0) {
+                    showStatus('✅ 文字已发送,数字人正在朗读...', 'success');
+                    // 发送成功后清空输入框
+                    setTimeout(() => {
+                        document.getElementById('message').value = '';
+                    }, 500);
+                } else {
+                    showStatus('❌ 发送失败: ' + result.msg, 'error');
+                }
+            } catch (error) {
+                showStatus('❌ 网络错误: ' + error.message, 'error');
+            }
+        }
+
+        async function interrupt() {
+            try {
+                if (!sessionId) {
+                    sessionId = localStorage.getItem('sessionId');
+                    if (!sessionId) {
+                        showStatus('未找到数字人连接', 'error');
+                        return;
+                    }
+                }
+
+                const response = await fetch('/interrupt_talk', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        sessionid: parseInt(sessionId)
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.code === 0) {
+                    showStatus('⏹️ 已中断朗读', 'success');
+                } else {
+                    showStatus('❌ 中断失败: ' + result.msg, 'error');
+                }
+            } catch (error) {
+                showStatus('❌ 网络错误: ' + error.message, 'error');
+            }
+        }
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = 'status ' + type;
+
+            setTimeout(() => {
+                statusDiv.className = 'status';
+            }, 3000);
+        }
+
+        // 支持回车发送
+        document.getElementById('message').addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                sendText();
+            }
+        });
+
+        // 每秒检查一次sessionId
+        setInterval(() => {
+            const newSessionId = localStorage.getItem('sessionId');
+            if (newSessionId && newSessionId !== sessionId) {
+                sessionId = newSessionId;
+                showStatus('✅ 已连接到数字人 (Session: ' + sessionId + ')', 'success');
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,35 @@
+__pycache__/
+build/
+*.egg-info/
+*.so
+*.mp4
+
+tmp*
+trial*/
+
+data
+data_utils/face_tracking/3DMM/*
+data_utils/face_parsing/79999_iter.pth
+
+pretrained
+*.mp4
+.DS_Store
+workspace/log_ngp.txt
+.idea
+models/
+*.log
+dist
+
+# 环境变量文件 - 包含敏感信息，不要提交到 Git
+.env
+
+# IDE 配置
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 临时文件
+temp*.mp4
+temp*.aac
